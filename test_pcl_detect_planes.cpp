@@ -86,7 +86,7 @@ TEST(HelperPublicTest, Test_extractMajorPlanesFromPointCloud) {
 
 	cloudfile.close();
 	/// Find the 2 major planes of the cloud.
-	helperPublic.extractMajorPlanesFromPointCloud(cloud, 2, outfilePlanes, outfileCloudWPlanes);
+	helperPublic.extractMajorPlanesFromPointCloud(cloud, 2, outfilePlanes, outfileCloudWPlanes, 1.0);
 	outfilePlanes.close();
 	outfileCloudWPlanes.close();
 

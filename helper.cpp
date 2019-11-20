@@ -138,7 +138,7 @@ void Helper::writePointsWithPlaneToFile(std::ofstream& file, pcl::PointCloud<pcl
  * and each point that belongs to it is given that id.
  * The remaining points that don't belong to the first #totalPlanes planes are given id -1.
  */
-void Helper::extractMajorPlanesFromPointCloud(std::string& inputPath, int totalPlanes, std::ofstream& outfilePlanes, std::ofstream& outfileCloudWPlanes)
+void Helper::extractMajorPlanesFromPointCloud(std::string& inputPath, int totalPlanes, std::ofstream& outfilePlanes, std::ofstream& outfileCloudWPlanes, double distanceThres)
 {
 	/// Creates pointers to PointCloud objects. cloud is the total cloud, cloud_p is the extracted plane and cloud_f the remaining points.
 	pcl::PointCloud<pcl::PointXYZ>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZ>), cloud_p(new pcl::PointCloud<pcl::PointXYZ>), cloud_f(new pcl::PointCloud<pcl::PointXYZ>);
@@ -162,7 +162,7 @@ void Helper::extractMajorPlanesFromPointCloud(std::string& inputPath, int totalP
 	seg.setModelType(pcl::SACMODEL_PLANE); //! We are trying to find a plane so we are using the SACMODEL_PLANE.
 	seg.setMethodType(pcl::SAC_RANSAC); //! We are using the Random sample consensus method to detect points in the same plane.
 	seg.setMaxIterations(1000);
-	seg.setDistanceThreshold(1); //! A distance threshold has to be set depending on the dataset, unless we normalize the points.
+	seg.setDistanceThreshold(distanceThres); //! A distance threshold has to be set depending on the dataset, unless we normalize the points.
 
 	
 	pcl::ExtractIndices<pcl::PointXYZ> extract; //! extract: Creates the filtering object.

@@ -24,7 +24,7 @@ public:
 	void setOutLog(std::string &filename);
 	void writeLog(std::stringstream &line);
 	bool is_integer(const std::string& s);
-	void extractMajorPlanesFromPointCloud(std::string &inputPath, int totalPlanes, std::ofstream &outfilePlanes, std::ofstream &outfileCloudWPlanes);
+	void extractMajorPlanesFromPointCloud(std::string &inputPath, int totalPlanes, std::ofstream &outfilePlanes, std::ofstream &outfileCloudWPlanes, double distanceThres);
 private:
 	std::ofstream outlog;
 	pcl::PointCloud<pcl::PointXYZ>::Ptr readCloudFromFile(std::string inputPath);

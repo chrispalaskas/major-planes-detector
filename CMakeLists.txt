@@ -14,7 +14,7 @@ target_link_libraries(pcl_detect_planes ${PCL_LIBRARIES} helper_lib)
 ################################
 # GTest
 ################################
-ADD_SUBDIRECTORY (googletest)
+ADD_SUBDIRECTORY (googletest/googletest)
 enable_testing()
 include_directories(${gtest_SOURCE_DIR}/include ${gtest_SOURCE_DIR})
 

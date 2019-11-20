@@ -27,20 +27,33 @@ int main (int argc, char** argv)
 	if (argc < 3)
 	{
 		ss << "Please use input file name and number of planes as arguments." << std::endl
+		   << "Optional: distance threshold for plane detection. Default: 1.0" << std::endl
 		   << "E.g. <pcl_detect_planes.exe point_cloud.txt 3>";
 		helper.writeLog(ss);
 		exit(-1);
 	}
 
 	std::string inputPath = argv[1]; //! inputPath: The path to the point cloud input file.
-	if (!helper.is_integer(argv[2])) //! Verifying that the second argument is a number.
+	if (!helper.is_integer(argv[2])) //! Verifying that the second argument is an integer.
 	{
 		ss << "The second argument has to be an integer.";
 		helper.writeLog(ss);
 		exit(-1);
 	}
 	int totalPlanes = atoi(argv[2]); //! totalPlanes: The number of planes that should be detected.
-	
+	double distanceThres = 1.0;
+	if (argc == 4)
+	{
+		if (atof(argv[3]) == 0.0)
+		{
+			ss << "The third argument is optional, but if set has to be a double. Default is 1.0";
+			helper.writeLog(ss);
+			exit(-1);
+		}
+		else
+			distanceThres = atof(argv[3]);
+	}
+
 	std::string outputPlanes = "Detected_Planes.txt"; //! outputPlanes: The output filename with the detected planes, centroid and normal.
 	std::string outputPointCloudWithPlaneIDs = "Point_Cloud_with_Plane_id.txt"; //! outputPointCloudWithPlaneIDs: The output filename with the cloud points and plane_id.
 
@@ -50,7 +63,7 @@ int main (int argc, char** argv)
 	outfilePlanes.open(outputPlanes);
 
 	/// Calls extractMajorPlanesFromPointCloud, where all processing takes place
-	helper.extractMajorPlanesFromPointCloud(inputPath, totalPlanes, outfilePlanes, outfileCloudWPlanes);
+	helper.extractMajorPlanesFromPointCloud(inputPath, totalPlanes, outfilePlanes, outfileCloudWPlanes, distanceThres);
 	
 	outfilePlanes.close();
 	outfileCloudWPlanes.close();
