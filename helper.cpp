@@ -36,6 +36,7 @@ void Helper::writeLog(std::stringstream& line)
 	line.str(std::string());
 
 }
+
 ///
 /// Tries to open an .xyz file or a .pcd file and returns a Pointer to a pcl::PointCloud object.
 ///
@@ -132,11 +133,11 @@ void Helper::writePointsWithPlaneToFile(std::ofstream& file, pcl::PointCloud<pcl
 	writeLog(ss);
 }
 
-/**
- * Opens a point cloud file and extracts #totalPlanes major planes from it. Each plane is assigned an id starting with 1,
- * and each point that belongs to it is given that id.
- * The remaining points that don't belong to the first #totalPlanes planes are given id -1.
- */
+///
+/// Opens a point cloud file and extracts #totalPlanes major planes from it. Each plane is assigned an id starting with 1,
+/// and each point that belongs to it is given that id.
+/// The remaining points that don't belong to the first #totalPlanes planes are given id -1.
+///
 void Helper::extractMajorPlanesFromPointCloud(std::string& inputPath, int totalPlanes, std::ofstream& outfilePlanes, std::ofstream& outfileCloudWPlanes, double distanceThres, bool visualize)
 {
 	/// Creates pointers to PointCloud objects. cloud is the total cloud, cloud_p is the extracted plane and cloud_f the remaining points.

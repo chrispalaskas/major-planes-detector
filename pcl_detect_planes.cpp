@@ -16,6 +16,9 @@
 #include <chrono>
 #include "helper.h"
 
+ ///
+/// Parses the arguments of the command line executable call
+///
 void argparser(int argc, char** argv, Helper& helper, int& totalPlanes, std::string& inputPath, double& distanceThres, bool& visualizePC)
 {
 	std::stringstream ss;
@@ -25,6 +28,7 @@ void argparser(int argc, char** argv, Helper& helper, int& totalPlanes, std::str
 	std::string optionalFourthArg = "The fourth argument is optional, but if set, it has to be ";
 	std::string doubleForThres = "a double for the point distance threshold, with default = 1.0.";
 	std::string boolForVisual = "a boolean true / false for visualization, with default false.";
+	//! Exit if the 2 mandatory arguments are not given.
 	if (argc < 3)
 	{
 		ss << "Please use input file name and number of planes as arguments." << std::endl
@@ -35,6 +39,7 @@ void argparser(int argc, char** argv, Helper& helper, int& totalPlanes, std::str
 		exit(-1);
 	}
 
+	//! The first argument should be the path of the input file. If it is not a valid cloud file it will fail later.
 	inputPath = argv[1]; //! inputPath: The path to the point cloud input file.
 	if (!helper.is_integer(argv[2])) //! Verifying that the second argument is an integer.
 	{
@@ -44,6 +49,7 @@ void argparser(int argc, char** argv, Helper& helper, int& totalPlanes, std::str
 	}
 	totalPlanes = atoi(argv[2]); //! totalPlanes: The number of planes that should be detected.
 
+	//! If three arguments were given, the third and optional could be the distance threshold or the visualization flag.
 	if (argc == 4)
 	{
 		if (std::string(argv[3]) == "true" || std::string(argv[3]) == "false")
@@ -65,6 +71,7 @@ void argparser(int argc, char** argv, Helper& helper, int& totalPlanes, std::str
 		else
 			distanceThres = atof(argv[3]);
 	}
+	//! If 4 arguments are given the third should be the distance threshold and the fourth the visualization flag.
 	else if (argc == 5)
 	{
 		if (atof(argv[3]) == 0.0)
@@ -105,6 +112,7 @@ int main (int argc, char** argv)
 	std::string inputPath="";
 	double distanceThres = 1.0;
 	bool visualizePC = false;
+	//! Parse the input arguments of the execution call.
 	argparser(argc, argv, helper, totalPlanes, inputPath, distanceThres, visualizePC);
 	
 	
@@ -116,7 +124,7 @@ int main (int argc, char** argv)
 	outfileCloudWPlanes.open(outputPointCloudWithPlaneIDs);
 	outfilePlanes.open(outputPlanes);
 
-	/// Calls extractMajorPlanesFromPointCloud, where all processing takes place
+	/// Calls extractMajorPlanesFromPointCloud, where all processing takes place.
 	helper.extractMajorPlanesFromPointCloud(inputPath, totalPlanes, outfilePlanes, outfileCloudWPlanes, distanceThres, visualizePC);
 	
 	outfilePlanes.close();
