@@ -29,7 +29,7 @@ private:
 	std::ofstream outlog;
 	pcl::PointCloud<pcl::PointXYZ>::Ptr readCloudFromFile(std::string inputPath);
 	pcl::PointCloud<pcl::PointXYZ>::Ptr xyz2CloudConverter(std::string filePath);
-	void visualizePointCloud(pcl::PointCloud<pcl::PointXYZ>::Ptr& cloud);
+	void visualizePointCloud(pcl::PointCloud<pcl::PointXYZ>::Ptr& cloud, std::string windowName);
 	void writePointsWithPlaneToFile(std::ofstream& file, pcl::PointCloud<pcl::PointXYZ>::Ptr& cloud, int plane);
 };
 

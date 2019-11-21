@@ -60,7 +60,6 @@ pcl::PointCloud<pcl::PointXYZ>::Ptr Helper::readCloudFromFile(std::string inputP
 	std::stringstream ss;
 	ss << cloud->points.size() << " total points in the cloud.";
 	writeLog(ss);
-	//visualizePointCloud(cloud);
 	return cloud;
 }
 
@@ -102,10 +101,10 @@ pcl::PointCloud<pcl::PointXYZ>::Ptr Helper::xyz2CloudConverter(std::string fileP
 ///
 /// Visualizes the point cloud using the PCLVisualizer. Mouse scrolls in/out, shift, control and alt freeze each axis to rotate angle.
 ///
-void Helper::visualizePointCloud(pcl::PointCloud<pcl::PointXYZ>::Ptr& cloud)
+void Helper::visualizePointCloud(pcl::PointCloud<pcl::PointXYZ>::Ptr& cloud, std::string windowName)
 {
 	/// PointCloud visualization
-	boost::shared_ptr<pcl::visualization::PCLVisualizer> viewer(new pcl::visualization::PCLVisualizer("3D Viewer"));
+	boost::shared_ptr<pcl::visualization::PCLVisualizer> viewer(new pcl::visualization::PCLVisualizer(windowName));
 	viewer->setBackgroundColor(0, 0, 0);
 	viewer->addPointCloud<pcl::PointXYZ>(cloud, "Point Cloud");
 	viewer->setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 2, "Point Cloud");
@@ -152,7 +151,7 @@ void Helper::extractMajorPlanesFromPointCloud(std::string& inputPath, int totalP
 		return;
 	}
 	if (visualize)
-		visualizePointCloud(cloud);
+		visualizePointCloud(cloud, "Total Cloud");
 	pcl::ModelCoefficients::Ptr coefficients(new pcl::ModelCoefficients()); //! coefficients: The coefficients of the plane ax+by+cz+d=0.
 	pcl::PointIndices::Ptr inliers(new pcl::PointIndices()); //! inliers: The indices of the inliers, i.e. the points in the plane.
 	/// Creates the segmentation object.
@@ -210,7 +209,9 @@ void Helper::extractMajorPlanesFromPointCloud(std::string& inputPath, int totalP
 				pnt_on_line.z = centroid[2] + distfromstart * coefficients->values[2];
 				cloud_p->points.push_back(pnt_on_line);
 			}
-			visualizePointCloud(cloud_p);
+			std::stringstream windowNameSS;
+			windowNameSS << "Plane " << i;
+			visualizePointCloud(cloud_p, windowNameSS.str());
 		}
 
 		/// Creates the filtering object.
@@ -220,5 +221,7 @@ void Helper::extractMajorPlanesFromPointCloud(std::string& inputPath, int totalP
 		i++;
 	}
 	/// Writes the remaining points to a file.
+	if (visualize)
+		visualizePointCloud(cloud, "Remaining Points");
 	writePointsWithPlaneToFile(outfileCloudWPlanes, cloud, -1);
 }
