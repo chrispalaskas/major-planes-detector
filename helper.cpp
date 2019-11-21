@@ -33,7 +33,7 @@ void Helper::writeLog(std::stringstream& line)
 {
 	outlog << line.str() << std::endl;
 	std::cout << line.str() << std::endl;
-	line.clear();
+	line.str(std::string());
 
 }
 ///
@@ -138,7 +138,7 @@ void Helper::writePointsWithPlaneToFile(std::ofstream& file, pcl::PointCloud<pcl
  * and each point that belongs to it is given that id.
  * The remaining points that don't belong to the first #totalPlanes planes are given id -1.
  */
-void Helper::extractMajorPlanesFromPointCloud(std::string& inputPath, int totalPlanes, std::ofstream& outfilePlanes, std::ofstream& outfileCloudWPlanes, double distanceThres)
+void Helper::extractMajorPlanesFromPointCloud(std::string& inputPath, int totalPlanes, std::ofstream& outfilePlanes, std::ofstream& outfileCloudWPlanes, double distanceThres, bool visualize)
 {
 	/// Creates pointers to PointCloud objects. cloud is the total cloud, cloud_p is the extracted plane and cloud_f the remaining points.
 	pcl::PointCloud<pcl::PointXYZ>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZ>), cloud_p(new pcl::PointCloud<pcl::PointXYZ>), cloud_f(new pcl::PointCloud<pcl::PointXYZ>);
@@ -151,7 +151,8 @@ void Helper::extractMajorPlanesFromPointCloud(std::string& inputPath, int totalP
 		writeLog(ss);
 		return;
 	}
-	//visualizePointCloud(cloud);
+	if (visualize)
+		visualizePointCloud(cloud);
 	pcl::ModelCoefficients::Ptr coefficients(new pcl::ModelCoefficients()); //! coefficients: The coefficients of the plane ax+by+cz+d=0.
 	pcl::PointIndices::Ptr inliers(new pcl::PointIndices()); //! inliers: The indices of the inliers, i.e. the points in the plane.
 	/// Creates the segmentation object.
@@ -198,17 +199,20 @@ void Helper::extractMajorPlanesFromPointCloud(std::string& inputPath, int totalP
 		outfilePlanes << i << ": " << centroid[0] << ", " << centroid[1] << ", " << centroid[2] << ", "
 			<< coefficients->values[0] << ", " << coefficients->values[1] << ", " << coefficients->values[2] << "\n";
 
-		//pcl::PointXYZ pnt_on_line;
-		//double LINE_LENGTH = 50.0;
-		//double DISTANCE_INCREMENT = 0.01;
-		//for (double distfromstart = 0.0; distfromstart < LINE_LENGTH; distfromstart += DISTANCE_INCREMENT) {
-		//	pnt_on_line.x = centroid[0] + distfromstart * coefficients->values[0];
-		//	pnt_on_line.y = centroid[1] + distfromstart * coefficients->values[1];
-		//	pnt_on_line.z = centroid[2] + distfromstart * coefficients->values[2];
-		//	cloud_p->points.push_back(pnt_on_line);
-		//}
+		if (visualize)
+		{
+			pcl::PointXYZ pnt_on_line;
+			double LINE_LENGTH = 50.0;
+			double DISTANCE_INCREMENT = 0.01;
+			for (double distfromstart = 0.0; distfromstart < LINE_LENGTH; distfromstart += DISTANCE_INCREMENT) {
+				pnt_on_line.x = centroid[0] + distfromstart * coefficients->values[0];
+				pnt_on_line.y = centroid[1] + distfromstart * coefficients->values[1];
+				pnt_on_line.z = centroid[2] + distfromstart * coefficients->values[2];
+				cloud_p->points.push_back(pnt_on_line);
+			}
+			visualizePointCloud(cloud_p);
+		}
 
-		//visualizePointCloud(cloud_p);
 		/// Creates the filtering object.
 		extract.setNegative(true);
 		extract.filter(*cloud_f);

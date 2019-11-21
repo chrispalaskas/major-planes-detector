@@ -27,8 +27,9 @@ int main (int argc, char** argv)
 	if (argc < 3)
 	{
 		ss << "Please use input file name and number of planes as arguments." << std::endl
-		   << "Optional: distance threshold for plane detection. Default: 1.0" << std::endl
-		   << "E.g. <pcl_detect_planes.exe point_cloud.txt 3>";
+		   << "Optional 1: distance threshold for plane detection. Default: 1.0" << std::endl
+		   << "Optional 2: enable visualization. Default: false" << std::endl
+		   << "E.g. <pcl_detect_planes.exe point_cloud.txt 3 0.1 true>";
 		helper.writeLog(ss);
 		exit(-1);
 	}
@@ -42,18 +43,58 @@ int main (int argc, char** argv)
 	}
 	int totalPlanes = atoi(argv[2]); //! totalPlanes: The number of planes that should be detected.
 	double distanceThres = 1.0;
+	bool visualizePC = false;	
 	if (argc == 4)
 	{
-		if (atof(argv[3]) == 0.0)
+		if (std::string(argv[3]) == "true" || std::string(argv[3]) == "false")
 		{
-			ss << "The third argument is optional, but if set has to be a double. Default is 1.0";
+			visualizePC = std::string(argv[3]) == "true";
+			if (visualizePC)
+				ss << "Visualization of Point Cloud enabled.";
+			else
+				ss << "Visualization of Point Cloud disabled.";
+			helper.writeLog(ss);
+		}
+		else if (atof(argv[3]) == 0.0)
+		{
+			ss << "The third argument is optional, but if set has to be a double for the threshold with default is 1.0." << std::endl
+     		   << "OR a boolean true/false for visualization, with default false.";
 			helper.writeLog(ss);
 			exit(-1);
 		}
 		else
 			distanceThres = atof(argv[3]);
 	}
+	else if (argc == 5)
+	{
+		if (atof(argv[3]) == 0.0)
+		{
+			ss << "The third argument is optional, but if set has to be a double for the threshold with default is 1.0.";
+			helper.writeLog(ss);
+			exit(-1);
+		}
+		else
+			distanceThres = atof(argv[3]);
+		
+		if (std::string(argv[4]) == "true" || std::string(argv[4]) == "false")
+		{
+			visualizePC = std::string(argv[4]) == "true";
+			if (visualizePC)
+				ss << "Visualization of Point Cloud enabled.";
+			else
+				ss << "Visualization of Point Cloud disabled.";
+			helper.writeLog(ss);
+		}
+		else
+		{
+			ss << "The fourth argument is optional, but if set has to be a boolean true/false for visualization, with default false.";
+			helper.writeLog(ss);
+			exit(-1);
+		}
 
+	}
+
+	
 	std::string outputPlanes = "Detected_Planes.txt"; //! outputPlanes: The output filename with the detected planes, centroid and normal.
 	std::string outputPointCloudWithPlaneIDs = "Point_Cloud_with_Plane_id.txt"; //! outputPointCloudWithPlaneIDs: The output filename with the cloud points and plane_id.
 
@@ -63,7 +104,7 @@ int main (int argc, char** argv)
 	outfilePlanes.open(outputPlanes);
 
 	/// Calls extractMajorPlanesFromPointCloud, where all processing takes place
-	helper.extractMajorPlanesFromPointCloud(inputPath, totalPlanes, outfilePlanes, outfileCloudWPlanes, distanceThres);
+	helper.extractMajorPlanesFromPointCloud(inputPath, totalPlanes, outfilePlanes, outfileCloudWPlanes, distanceThres, visualizePC);
 	
 	outfilePlanes.close();
 	outfileCloudWPlanes.close();
