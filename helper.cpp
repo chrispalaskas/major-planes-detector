@@ -118,6 +118,22 @@ void Helper::visualizePointCloud(pcl::PointCloud<pcl::PointXYZ>::Ptr& cloud, std
 	}
 }
 
+void Helper::visualizePointCloud(pcl::PointCloud<pcl::PointXYZRGB>::Ptr& cloud, std::string windowName)
+{
+	/// PointCloud visualization
+	boost::shared_ptr<pcl::visualization::PCLVisualizer> viewer(new pcl::visualization::PCLVisualizer(windowName));
+	viewer->setBackgroundColor(0, 0, 0);
+	viewer->addPointCloud<pcl::PointXYZRGB>(cloud, "Point Cloud");
+	viewer->setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 2, "Point Cloud");
+	viewer->initCameraParameters();
+
+	while (!viewer->wasStopped())
+	{
+		viewer->spinOnce(100);
+		boost::this_thread::sleep(boost::posix_time::microseconds(100000));
+	}
+}
+
 ///
 /// Writes points x, y, z and plane_id for each point to an open file stream.
 ///
@@ -142,6 +158,7 @@ void Helper::extractMajorPlanesFromPointCloud(std::string& inputPath, int totalP
 {
 	/// Creates pointers to PointCloud objects. cloud is the total cloud, cloud_p is the extracted plane and cloud_f the remaining points.
 	pcl::PointCloud<pcl::PointXYZ>::Ptr cloud(new pcl::PointCloud<pcl::PointXYZ>), cloud_p(new pcl::PointCloud<pcl::PointXYZ>), cloud_f(new pcl::PointCloud<pcl::PointXYZ>);
+	pcl::PointCloud<pcl::PointXYZRGB>::Ptr cloudRGB(new pcl::PointCloud<pcl::PointXYZRGB>);
 	/// Fills in the cloud data.
 	cloud = readCloudFromFile(inputPath);
 	std::stringstream ss;
@@ -191,6 +208,22 @@ void Helper::extractMajorPlanesFromPointCloud(std::string& inputPath, int totalP
 		
 		/// Writes the points of the detected plane and the plane_id to a file.
 		writePointsWithPlaneToFile(outfileCloudWPlanes, cloud_p, i);
+		if (visualize)
+		{
+			pcl::PointCloud<pcl::PointXYZRGB>::Ptr planecloudRGB(new pcl::PointCloud<pcl::PointXYZRGB>);
+			pcl::copyPointCloud(*cloud_p, *planecloudRGB);
+
+			for (int j = 0; j < planecloudRGB->size(); j++)
+			{
+				int r = i % 3 == 2 ? 0 : i % 3;
+				int g = (i + 1) % 3 == 2 ? 0 : (i + 1) % 3;
+				int b = (i + 2) % 3 == 2 ? 0 : (i + 2) % 3;
+				planecloudRGB->at(j).r = 255 * r;
+				planecloudRGB->at(j).g = 255 * g;
+				planecloudRGB->at(j).b = 255 * b;
+			}
+			*cloudRGB += *planecloudRGB;
+		}
 
 		Eigen::Vector4f centroid; //! centroid: Holds the centroid of the plane.
 		/// Computes the centroid point of the cloud, i.e. the plane.
@@ -223,6 +256,19 @@ void Helper::extractMajorPlanesFromPointCloud(std::string& inputPath, int totalP
 	}
 	/// Writes the remaining points to a file.
 	if (visualize)
-		visualizePointCloud(cloud, "Remaining Points");
+	{
+		pcl::PointCloud<pcl::PointXYZRGB>::Ptr remainingRGB(new pcl::PointCloud<pcl::PointXYZRGB>);
+		pcl::copyPointCloud(*cloud, *remainingRGB);
+
+		for (int j = 0; j < remainingRGB->size(); j++)
+		{
+			remainingRGB->at(j).r = 255;
+			remainingRGB->at(j).g = 255;
+			remainingRGB->at(j).b = 255;
+		}
+		visualizePointCloud(remainingRGB, "Remaining cloud");
+		*cloudRGB += *remainingRGB;
+		visualizePointCloud(cloudRGB, "Whole Cloud Segmented");
+	}
 	writePointsWithPlaneToFile(outfileCloudWPlanes, cloud, -1);
 }
