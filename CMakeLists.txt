@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.6 FATAL_ERROR)
+cmake_minimum_required(VERSION 3.10 FATAL_ERROR)
 project(MAJOR_PLANES_DETECTOR)
 
 find_package(PCL 1.2 REQUIRED COMPONENTS)
@@ -9,7 +9,14 @@ add_definitions(${PCL_DEFINITIONS})
 add_library(helper_lib helper.cpp helper.h)
 add_executable(pcl_detect_planes
                pcl_detect_planes.cpp )
+add_executable(pcl_playback
+               pcl_playback.cpp )
+			   
 target_link_libraries(pcl_detect_planes ${PCL_LIBRARIES} helper_lib)
+target_link_libraries(pcl_playback ${PCL_LIBRARIES} helper_lib)
+set_property(TARGET pcl_playback PROPERTY CXX_STANDARD 17)
+set_property(TARGET pcl_playback PROPERTY CXX_STANDARD_REQUIRED ON)
+set (OpenCV_DIR C:/libs/opencv/x64/vc14/staticlib)
 
 ################################
 # GTest

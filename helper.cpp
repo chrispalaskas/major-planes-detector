@@ -110,6 +110,7 @@ void Helper::visualizePointCloud(pcl::PointCloud<pcl::PointXYZ>::Ptr& cloud, std
 	viewer->addPointCloud<pcl::PointXYZ>(cloud, "Point Cloud");
 	viewer->setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 2, "Point Cloud");
 	viewer->initCameraParameters();
+	//viewer->addCoordinateSystem();
 
 	while (!viewer->wasStopped())
 	{
