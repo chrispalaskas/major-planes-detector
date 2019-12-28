@@ -12,32 +12,22 @@
 
 #include <chrono>
 #include "helper.h"
-#include <filesystem>
 #include <vtkRenderWindow.h>
 #include <vtkCamera.h>
 #include <pcl/filters/voxel_grid.h>
+#include <windows.h>
+
+#include <opencv2/opencv.hpp>
+#include <opencv2/core/core.hpp>
+#include <opencv2/highgui/highgui.hpp>
+#include <opencv2/videoio.hpp>
+#include <iostream>
 
 class HelperTest
 {
 public:
 	pcl::PointCloud<pcl::PointXYZ>::Ptr readCloudFromFile(std::string inputPath) {
 		return helper.readCloudFromFile(inputPath);
-	}
-	void visualizePointCloud(pcl::PointCloud<pcl::PointXYZ>::Ptr& cloud, std::string windowName)
-	{
-		/// PointCloud visualization
-		boost::shared_ptr<pcl::visualization::PCLVisualizer> viewer(new pcl::visualization::PCLVisualizer(windowName));
-		viewer->setBackgroundColor(0, 0, 0);
-		viewer->addPointCloud<pcl::PointXYZ>(cloud, "Point Cloud");
-		viewer->setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 2, "Point Cloud");
-		viewer->initCameraParameters();
-		//viewer->addCoordinateSystem();
-
-		while (!viewer->wasStopped())
-		{
-			viewer->spinOnce(100);
-			boost::this_thread::sleep(boost::posix_time::microseconds(100000));
-		}
 	}
 private:
 	Helper helper;
@@ -63,21 +53,35 @@ void argparser(int argc, char** argv, Helper& helper, std::string& inputFolder)
 	inputFolder = argv[1]; //! inputFolder: The path to the point cloud input folder.
 }
 
+void read_directory(const std::string& name, std::vector < std::string> &v)
+{
+	std::string pattern(name);
+	pattern.append("\\*");
+	WIN32_FIND_DATA data;
+	HANDLE hFind;
+	if ((hFind = FindFirstFile(pattern.c_str(), &data)) != INVALID_HANDLE_VALUE) {
+		do {
+			if (std::string(data.cFileName) != "." && std::string(data.cFileName) != "..")
+				v.push_back(name + "\\" + data.cFileName);
+		} while (FindNextFile(hFind, &data) != 0);
+		FindClose(hFind);
+	}
+}
+
 void downsample_cloud(std::string folder)
 {
-	for (const auto& entry : std::filesystem::directory_iterator(folder))
-	{
-		const wchar_t* c = entry.path().native().c_str();
-		std::wstring ws(c);
-		std::string filename(ws.begin(), ws.end());
+	std::vector<std::string> filesV;
+	read_directory(folder, filesV);
 
+	for (auto file : filesV)
+	{
 		pcl::PCLPointCloud2::Ptr cloud(new pcl::PCLPointCloud2());
 		pcl::PCLPointCloud2::Ptr cloud_filtered(new pcl::PCLPointCloud2());
 
 		// Fill in the cloud data
 		pcl::PCDReader reader;
 		// Replace the path below with the path where you saved your file
-		reader.read(filename, *cloud); // Remember to download the file first!
+		reader.read(file, *cloud); // Remember to download the file first!
 
 		std::cerr << "PointCloud before filtering: " << cloud->width * cloud->height
 			<< " data points (" << pcl::getFieldsList(*cloud) << ").";
@@ -89,11 +93,11 @@ void downsample_cloud(std::string folder)
 		sor.filter(*cloud_filtered);
 
 		std::cerr << "PointCloud after filtering: " << cloud_filtered->width * cloud_filtered->height
-			<< " data points (" << pcl::getFieldsList(*cloud_filtered) << ").";
+			<< " data points (" << pcl::getFieldsList(*cloud_filtered) << ")." << std::endl;
 
 		pcl::PCDWriter writer;
-		filename = filename.substr(0, filename.size() - 4) + "_downsampled.pcd";
-		writer.write(filename, *cloud_filtered,
+		file = file.substr(0, file.size() - 4) + "_downsampled.pcd";
+		writer.write(file, *cloud_filtered,
 			Eigen::Vector4f::Zero(), Eigen::Quaternionf::Identity(), false);
 	}
 }
@@ -102,13 +106,7 @@ void visualize_pcl_folder(std::string folder)
 {
 	HelperTest helper;
 	std::vector<std::string> filesV;
-	for (const auto& entry : std::filesystem::directory_iterator(folder))
-	{
-		const wchar_t* c = entry.path().native().c_str();
-		std::wstring ws(c);
-		std::string str(ws.begin(), ws.end());
-		filesV.push_back(str);
-	}
+	read_directory(folder, filesV);
 
 	if (filesV.empty())
 	{
@@ -126,7 +124,7 @@ void visualize_pcl_folder(std::string folder)
 	viewer->addPointCloud<pcl::PointXYZ>(cloud, "Point Cloud");
 	viewer->setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 2, "Point Cloud");
 	viewer->initCameraParameters();
-	viewer->setCameraPosition(30,0,30, 1, 0, 1);
+	viewer->setCameraPosition(30,30,30, 1, 1, 1);
 	std::vector<pcl::visualization::Camera> cams;
 	viewer->getCameras(cams);
 
@@ -143,8 +141,10 @@ void visualize_pcl_folder(std::string folder)
 
 	//viewer->addCoordinateSystem();
 
+
 	int nextIndex = 0;
-	while (nextIndex<filesV.size())
+	cv::Mat cameraFrame;
+	while (nextIndex<filesV.size()-1)
 	{
 		viewer->spinOnce(100);
 		viewer->removeAllShapes();
@@ -155,6 +155,13 @@ void visualize_pcl_folder(std::string folder)
 		viewer->addPointCloud<pcl::PointXYZ>(cloud, "Point Cloud");
 		viewer->setPointCloudRenderingProperties(pcl::visualization::PCL_VISUALIZER_POINT_SIZE, 2, "Point Cloud");
 		viewer->updatePointCloud(cloud);
+
+		cameraFrame = cv::imread(folder + "\\frames\\" + std::to_string(nextIndex) + ".jpg");
+		if (cameraFrame.data)                              // Check for invalid input
+		{
+			cv::imshow("Camera", cameraFrame);
+			cv::waitKey(1);
+		}
 
 		//boost::this_thread::sleep(boost::posix_time::microseconds(100000));
 	}
